@@ -15,6 +15,7 @@ extern crate serde_json;
 
 pub mod app;
 pub mod bulk;
+pub mod cashaccount;
 pub mod config;
 pub mod daemon;
 pub mod errors;
