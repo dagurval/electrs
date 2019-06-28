@@ -188,7 +188,7 @@ dependencies = [
 [[package]]
 name = "cashaccount-sys"
 version = "0.1.0"
-source = "git+https://github.com/dagurval/cashaccount-sys.git#2dcdb3ca776401cffa5c272f97d345c50c66e200"
+source = "git+https://github.com/dagurval/cashaccount-sys.git#dfa1a6aed38c3ceb2ab30e61274fbaad404153c5"
 dependencies = [
  "bindgen 0.47.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "cc 1.0.26 (registry+https://github.com/rust-lang/crates.io-index)",
