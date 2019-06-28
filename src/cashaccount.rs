@@ -102,7 +102,6 @@ fn parse_cashaccount(account: *mut CashAccount, txn: &Transaction) -> bool {
 }
 
 pub fn index_cashaccount<'a>(txn: &'a Transaction, blockheight: usize) -> Result<Row> {
-    // TODO: reuse account to avoid uneeded mallocs
     let account = unsafe { cashacc_account_init() };
     let _dest = scopeguard::guard((), |_| {
         unsafe { cashacc_account_destroy(account) };
@@ -111,13 +110,21 @@ pub fn index_cashaccount<'a>(txn: &'a Transaction, blockheight: usize) -> Result
     if !parse_cashaccount(account, txn) {
         return Err("no cashaccount".into());
     }
-    let name = unsafe { CStr::from_ptr((*account).name).to_bytes() };
-    Ok(TxCashAccountRow::new(&txn.txid(), name, blockheight).to_row())
+    let name = unsafe { CStr::from_ptr((*account).name).to_str().unwrap() };
+    Ok(TxCashAccountRow::new(
+        &txn.txid(),
+        name.to_ascii_lowercase().as_bytes(),
+        blockheight,
+    )
+    .to_row())
 }
 
 pub fn txids_by_cashaccount(store: &ReadStore, name: &str, height: usize) -> Vec<HashPrefix> {
     store
-        .scan(&TxCashAccountRow::filter(name.as_bytes(), height))
+        .scan(&TxCashAccountRow::filter(
+            name.to_ascii_lowercase().as_bytes(),
+            height,
+        ))
         .iter()
         .map(|row| TxCashAccountRow::from_row(row).txid_prefix)
         .collect()
@@ -133,7 +140,7 @@ pub fn has_cashaccount(txn: &Transaction, name: &str) -> bool {
     }
     let txn_name = unsafe { CStr::from_ptr((*account).name) };
     match txn_name.to_str() {
-        Ok(n) => n.eq(name),
+        Ok(n) => n.to_ascii_lowercase().eq(&name.to_ascii_lowercase()),
         Err(_n) => false,
     }
 }
